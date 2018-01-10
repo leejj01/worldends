@@ -20,55 +20,33 @@ var server = http.createServer(router);
 var io = socketio.listen(server);
 
 router.use(express.static(path.resolve(__dirname, 'client')));
-var messages = [];
+
 var sockets = [];
-
+var players = [];
 io.on('connection', function (socket) {
-    messages.forEach(function (data) {
-      socket.emit('message', data);
-    });
-
+  socket.on('new player', function() {
     sockets.push(socket);
-
-    socket.on('disconnect', function () {
-      sockets.splice(sockets.indexOf(socket), 1);
-      updateRoster();
-    });
-
-    socket.on('message', function (msg) {
-      var text = String(msg || '');
-
-      if (!text)
-        return;
-
-      socket.get('name', function (err, name) {
-        var data = {
-          name: name,
-          text: text
-        };
-
-        broadcast('message', data);
-        messages.push(data);
-      });
-    });
-
-    socket.on('identify', function (name) {
-      socket.set('name', String(name || 'Anonymous'), function (err) {
-        updateRoster();
-      });
-    });
+    players.push({x:400, y:400});
+    socket.emit('setIndex', sockets.length-1);
+  });
+  
+  socket.on('disconnect', function () {
+    var index = sockets.indexOf(socket);
+    sockets.splice(index, 1);
+    players.splice(index, 1);
   });
 
-function updateRoster() {
-  async.map(
-    sockets,
-    function (socket, callback) {
-      socket.get('name', callback);
-    },
-    function (err, names) {
-      broadcast('roster', names);
-    }
-  );
+  socket.on('message', function (msg) {
+    console.log(socket.id + msg);
+  });
+
+  socket.on('movement', function(data) {
+      
+  });
+});
+
+function updateSocketIndex() {
+  
 }
 
 function broadcast(event, data) {

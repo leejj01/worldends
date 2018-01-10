@@ -4,8 +4,6 @@ socket.on('message', function(data) {
     console.log(data);
 })
 
-
-
 var movement = {
     up:false,
     down:false,
@@ -16,6 +14,7 @@ var movement = {
 document.addEventListener('keydown', function(event) {
     switch(event.keyCode) {
         case 65: //a
+            console.log('a');
             movement.left = true;
             break;
         case 87: //w
@@ -51,3 +50,17 @@ socket.emit('new player');
 setInterval(function() {
     socket.emit('movement', movement);
 }, 1000/60);
+
+var canvas = document.getElementById('canvas');
+canvas.width = 800;
+canvas.height = 600;
+var context = canvas.getContext('2d');
+socket.on('state', function(players) {
+    context.clearRect(0,0,800,600);
+    for(var index = 0; index < players.length; index++){
+        context.beginPath();
+        context.arc(players[index].x, players[index].y, 10, 0, 2 * Math.PI);
+        context.fillStyle = 'blue';
+        context.fill();
+    }
+});

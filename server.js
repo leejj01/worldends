@@ -34,6 +34,7 @@ io.on('connection', function (socket) {
     var index = sockets.indexOf(socket);
     sockets.splice(index, 1);
     players.splice(index, 1);
+    updateSocketIndex(index);
   });
 
   socket.on('message', function (msg) {
@@ -41,12 +42,31 @@ io.on('connection', function (socket) {
   });
 
   socket.on('movement', function(data) {
-      
+    var index = sockets.indexOf(socket);
+    
+    if(data.left){
+      players[index].x -= 5;
+    }
+    if(data.right){
+      players[index].x += 5;
+    }
+    if(data.up){
+      players[index].y -= 5;
+    }
+    if(data.down){
+      players[index].y += 5;
+    }
   });
 });
 
-function updateSocketIndex() {
-  
+setInterval(function() {
+  io.sockets.emit('state', players);
+}, 1000/60);
+
+function updateSocketIndex(startIndex) {
+  for (var i=startIndex; i< players.length; i++) {
+    sockets[i].emit('setIndex', i);
+  }
 }
 
 function broadcast(event, data) {
@@ -55,7 +75,7 @@ function broadcast(event, data) {
   });
 }
 
-server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+server.listen(process.env.PORT || 5000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
-  console.log("Chat server listening at", addr.address + ":" + addr.port);
+  console.log("Server listening at", addr.address + ":" + addr.port);
 });

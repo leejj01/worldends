@@ -1,4 +1,4 @@
-var socket = io.connect(process.env.PORT); /* glabal io $*/
+var socket = io.connect(); /* glabal io $*/
 
 socket.on('message', function(data) {
     console.log(data);

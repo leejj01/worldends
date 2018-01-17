@@ -20,7 +20,26 @@ var server = http.createServer(router);
 var io = socketio.listen(server);
 
 router.use(express.static(path.resolve(__dirname, 'client')));
+router.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'client/index.html'));
+  //res.render('client/index.html', {});
+});
 
+// DB Part
+var mongoose = require('mongoose');
+
+var db = mongoose.connection;
+db.on('error', console.error);
+db.once('openUri', function() {
+    console.log("Connected to mongoDB server");
+});
+
+mongoose.connect(process.env.DB);
+
+var Node = require('./db/models/node.js');
+var DbManager = require('./db/dbmanager.js')(router,Node);
+
+// Game Part
 var sockets = [];
 var players = [];
 io.on('connection', function (socket) {
@@ -59,9 +78,11 @@ io.on('connection', function (socket) {
   });
 });
 
+
 setInterval(function() {
   io.sockets.emit('state', players);
 }, 1000/60);
+
 
 function updateSocketIndex(startIndex) {
   for (var i=startIndex; i< players.length; i++) {
@@ -79,3 +100,5 @@ server.listen(process.env.PORT || 5000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
   console.log("Server listening at", addr.address + ":" + addr.port);
 });
+
+
